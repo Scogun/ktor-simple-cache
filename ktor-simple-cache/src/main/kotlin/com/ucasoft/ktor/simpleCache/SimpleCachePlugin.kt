@@ -12,7 +12,7 @@ class SimpleCachePluginConfig {
 }
 
 val SimpleCachePlugin = createRouteScopedPlugin(name = "SimpleCachePlugin", ::SimpleCachePluginConfig) {
-    val provider = application.plugin(SimpleCache).config.provider
+    val provider = application.plugin(SimpleCache).config.provider ?: error("Add one cache provider!")
     val isResponseFromCacheKey = AttributeKey<Boolean>("isResponseFromCacheKey")
     onCall {
         val cache = provider.getCache(it.request.uri)

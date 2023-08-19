@@ -1,6 +1,5 @@
 package com.ucasoft.ktor.simpleCache
 
-import io.ktor.content.*
 import io.ktor.server.application.*
 import io.ktor.util.*
 import kotlin.time.Duration
@@ -8,7 +7,7 @@ import kotlin.time.Duration.Companion.minutes
 
 class SimpleCacheConfig {
 
-    internal var provider: SimpleCacheProvider = SimpleMemoryCacheProvider(SimpleMemoryCacheProvider.Config())
+    internal var provider: SimpleCacheProvider? = null
 }
 
 class SimpleCache(internal var config: SimpleCacheConfig) {
