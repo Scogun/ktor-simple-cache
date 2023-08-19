@@ -16,7 +16,7 @@ class SimpleCache(internal var config: SimpleCacheConfig) {
         override val key: AttributeKey<SimpleCache> = AttributeKey("SimpleCacheHolder")
 
         override fun install(pipeline: Application, configure: SimpleCacheConfig.() -> Unit): SimpleCache {
-            return SimpleCache(SimpleCacheConfig().apply { configure })
+            return SimpleCache(SimpleCacheConfig().apply(configure))
         }
     }
 }
@@ -33,10 +33,4 @@ abstract class SimpleCacheProvider(config: Config) {
 
          var invalidateAt: Duration = 5.minutes
     }
-}
-
-fun SimpleCacheConfig.memoryCache(
-    configure : SimpleMemoryCacheProvider.Config.() -> Unit
-){
-    provider = SimpleMemoryCacheProvider(SimpleMemoryCacheProvider.Config().apply { configure })
 }

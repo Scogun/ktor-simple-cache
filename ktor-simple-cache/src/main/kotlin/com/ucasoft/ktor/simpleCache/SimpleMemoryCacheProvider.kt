@@ -28,3 +28,9 @@ private data class SimpleMemoryCacheObject(val content: Any, val duration: Durat
     val isExpired: Boolean
         get() = LocalDateTime.now().isAfter(start.plusSeconds(duration.inWholeSeconds))
 }
+
+fun SimpleCacheConfig.memoryCache(
+    configure : SimpleMemoryCacheProvider.Config.() -> Unit
+){
+    provider = SimpleMemoryCacheProvider(SimpleMemoryCacheProvider.Config().apply(configure))
+}
