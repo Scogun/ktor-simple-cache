@@ -1,5 +1,7 @@
-package com.ucasoft.ktor.simpleCache
+package com.ucasoft.ktor.simpleMemoryCache
 
+import com.ucasoft.ktor.simpleCache.SimpleCacheConfig
+import com.ucasoft.ktor.simpleCache.SimpleCacheProvider
 import java.time.LocalDateTime
 import kotlin.time.Duration
 

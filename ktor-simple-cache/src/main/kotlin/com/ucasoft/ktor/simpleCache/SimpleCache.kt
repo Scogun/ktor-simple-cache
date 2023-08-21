@@ -7,7 +7,7 @@ import kotlin.time.Duration.Companion.minutes
 
 class SimpleCacheConfig {
 
-    internal var provider: SimpleCacheProvider? = null
+    var provider: SimpleCacheProvider? = null
 }
 
 class SimpleCache(internal var config: SimpleCacheConfig) {

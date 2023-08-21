@@ -1,4 +1,4 @@
-package com.ucasoft.ktor.simpleCache
+package com.ucasoft.ktor.simpleMemoryCache
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.shouldBe
