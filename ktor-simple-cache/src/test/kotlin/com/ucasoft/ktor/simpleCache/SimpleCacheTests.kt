@@ -1,6 +1,7 @@
 package com.ucasoft.ktor.simpleCache
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -50,8 +51,45 @@ internal class SimpleCacheTests {
 
             response.shouldBe("Test")
 
-            verify(provider, times(1)).getCache("/check")
+            verify(provider, times(1)).getCache(eq("/check"))
             verify(provider, times(0)).setCache(anyString(), any(), anyOrNull())
+        }
+    }
+
+    @Test
+    fun `check cache work`() {
+        testApplication {
+
+            var cache: Any? = null
+
+            val provider = mock<SimpleCacheProvider>{
+                on { invalidateAt } doReturn 5.minutes
+                on { setCache(anyString(), any(), anyOrNull()) } doAnswer {
+                    cache = it.arguments[1]
+                }
+                on { getCache(anyString()) } doAnswer {
+                    cache
+                }
+            }
+
+            install(SimpleCache) {
+                testCache(provider)
+            }
+
+            application(Application::testApplication)
+
+            val response = client.get("/check").bodyAsText()
+
+            response.shouldBe("Check response")
+
+            verify(provider, times(1)).getCache(eq("/check"))
+            verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
+            cache.shouldNotBeNull()
+
+            client.get("/check")
+
+            verify(provider, times(2)).getCache(eq("/check"))
+            verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
         }
     }
 }
