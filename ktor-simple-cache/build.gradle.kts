@@ -14,10 +14,11 @@ dependencies {
     testImplementation(ktor("serialization-kotlinx-json"))
     testImplementation(kotest("assertions-core"))
     testImplementation(kotestEx("assertions-ktor", "2.0.0"))
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
 }
 
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(11)
 }
 
 tasks.test {
