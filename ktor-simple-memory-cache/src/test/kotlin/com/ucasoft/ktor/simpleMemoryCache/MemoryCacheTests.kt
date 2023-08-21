@@ -12,10 +12,10 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.api.Test
 
-internal class PluginTests {
+internal class MemoryCacheTests {
 
     @Test
-    fun firstTest() {
+    fun fullTest() {
         testApplication {
             val jsonClient = client.config {
                 install(ContentNegotiation) {
@@ -26,16 +26,21 @@ internal class PluginTests {
             application(Application::testApplication)
 
             val response = jsonClient.get("folder/firstFile")
+            val longResponse = jsonClient.get("long")
 
             response.shouldHaveStatus(HttpStatusCode.OK)
+            longResponse.shouldHaveStatus(HttpStatusCode.OK)
 
             val firstBody = response.body<TestResponse>()
 
             val secondResponse = jsonClient.get("folder/firstFile")
             secondResponse.body<TestResponse>().id.shouldBe(firstBody.id)
-            Thread.sleep(5000)
+            Thread.sleep(3000)
             val thirdResponse = jsonClient.get("folder/firstFile")
             thirdResponse.body<TestResponse>().id.shouldNotBe(firstBody.id)
+
+            val secondLongResponse = jsonClient.get("long")
+            secondLongResponse.body<TestResponse>().id.shouldBe(longResponse.body<TestResponse>().id)
         }
     }
 }

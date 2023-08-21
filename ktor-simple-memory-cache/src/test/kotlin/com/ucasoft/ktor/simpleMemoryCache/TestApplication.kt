@@ -21,12 +21,19 @@ fun Application.testApplication() {
     }
 
     install(SimpleCache) {
-        memoryCache {}
+        memoryCache {
+            invalidateAt = 10.seconds
+        }
     }
 
     routing {
         cacheOutput(2.seconds) {
             get("folder/{file}") {
+                call.respond(TestResponse())
+            }
+        }
+        cacheOutput {
+            get("long") {
                 call.respond(TestResponse())
             }
         }
