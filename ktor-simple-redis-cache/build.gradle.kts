@@ -6,7 +6,9 @@ plugins {
 dependencies {
 
     implementation(project(":ktor-simple-cache"))
+    implementation("redis.clients:jedis:4.4.3")
 
+    testImplementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.4")
     testImplementation(kotlin("test"))
     testImplementation(ktorServer("test-host"))
     testImplementation(ktorClient("content-negotiation"))

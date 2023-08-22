@@ -7,3 +7,5 @@ rootProject.name = "simple-cache"
 include("ktor-simple-cache")
 
 include("ktor-simple-memory-cache")
+
+include("ktor-simple-redis-cache")
