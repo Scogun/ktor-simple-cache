@@ -28,7 +28,7 @@ fun Application.testApplication() {
 
     routing {
         cacheOutput(2.seconds) {
-            get("folder/{file}") {
+            get("short") {
                 call.respond(TestResponse())
             }
         }

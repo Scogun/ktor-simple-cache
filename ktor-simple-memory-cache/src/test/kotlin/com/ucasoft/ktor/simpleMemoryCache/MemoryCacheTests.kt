@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 internal class MemoryCacheTests {
 
     @Test
-    fun fullTest() {
+    fun `test memory cache`() {
         testApplication {
             val jsonClient = client.config {
                 install(ContentNegotiation) {
@@ -25,7 +25,7 @@ internal class MemoryCacheTests {
 
             application(Application::testApplication)
 
-            val response = jsonClient.get("folder/firstFile")
+            val response = jsonClient.get("short")
             val longResponse = jsonClient.get("long")
 
             response.shouldHaveStatus(HttpStatusCode.OK)
@@ -33,10 +33,10 @@ internal class MemoryCacheTests {
 
             val firstBody = response.body<TestResponse>()
 
-            val secondResponse = jsonClient.get("folder/firstFile")
+            val secondResponse = jsonClient.get("short")
             secondResponse.body<TestResponse>().id.shouldBe(firstBody.id)
             Thread.sleep(3000)
-            val thirdResponse = jsonClient.get("folder/firstFile")
+            val thirdResponse = jsonClient.get("short")
             thirdResponse.body<TestResponse>().id.shouldNotBe(firstBody.id)
 
             val secondLongResponse = jsonClient.get("long")
