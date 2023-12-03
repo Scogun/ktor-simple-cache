@@ -6,7 +6,7 @@ plugins {
 dependencies {
 
     implementation(project(":ktor-simple-cache"))
-    implementation("redis.clients:jedis:5.0.2")
+    implementation("redis.clients:jedis:5.1.0")
     implementation("com.google.code.gson:gson:2.10.1")
 
     testImplementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.4")
