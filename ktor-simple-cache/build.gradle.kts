@@ -16,6 +16,3 @@ kotlin {
     jvmToolchain(11)
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
