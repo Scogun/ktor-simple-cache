@@ -6,6 +6,10 @@ allprojects {
 
     version = "0.0.1"
 
+    apply {
+        plugin("maven-publish")
+    }
+
     repositories {
         mavenCentral()
     }
