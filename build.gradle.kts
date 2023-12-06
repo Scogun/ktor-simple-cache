@@ -4,6 +4,8 @@ tasks.wrapper {
 
 allprojects {
 
+    group = "com.ucasoft.ktor"
+
     version = "0.0.1"
 
     apply {
