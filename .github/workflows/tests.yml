@@ -24,7 +24,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: "Build with Gradle"
-        run: ./gradlew build
+        run: ./gradlew build -x test
         shell: bash
 
       - name: "Tests"
@@ -38,3 +38,12 @@ jobs:
           name: jUnit Tests
           path: '**/build/test-results/test/TEST-*.xml'
           reporter: java-junit
+
+      - name: "Run Coverage"
+        run: ./gradlew codeCoverageReport
+        shell: bash
+
+      - name: "Coverage Report"
+        uses: madrapps/jacoco-report@v1.6.1
+        with:
+          paths: ./build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
