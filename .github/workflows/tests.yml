@@ -4,12 +4,12 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  checks: write
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v2
 
@@ -47,3 +47,5 @@ jobs:
         uses: madrapps/jacoco-report@v1.6.1
         with:
           paths: ./build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true

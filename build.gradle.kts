@@ -32,16 +32,6 @@ allprojects {
     }
 }
 
-tasks.register<Copy>("collectXmlReports") {
-    val testTasks = rootProject.subprojects.flatMap { it.tasks.withType<Test>() }
-    val locations = testTasks.map { it.reports.junitXml.outputLocation.asFile.get() }
-    from(*locations.toTypedArray())
-    into(rootProject.layout.buildDirectory.dir("test-results/test"))
-    include("*.xml")
-
-    mustRunAfter(*testTasks.toTypedArray())
-}
-
 dependencies {
     jacocoAggregation(project(":ktor-simple-cache"))
     jacocoAggregation(project(":ktor-simple-memory-cache"))
