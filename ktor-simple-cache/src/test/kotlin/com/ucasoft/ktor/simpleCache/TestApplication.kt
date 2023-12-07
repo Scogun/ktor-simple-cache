@@ -3,9 +3,6 @@ package com.ucasoft.ktor.simpleCache
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
-import kotlin.time.Duration.Companion.minutes
 
 fun Application.badTestApplication() {
 
@@ -25,6 +22,16 @@ fun Application.testApplication() {
 
     routing {
         cacheOutput {
+            get("/check") {
+                call.respondText("Check response")
+            }
+        }
+    }
+}
+
+fun Application.testApplicationWithKey() {
+    routing {
+        cacheOutput(queryKeys = listOf("param1")) {
             get("/check") {
                 call.respondText("Check response")
             }

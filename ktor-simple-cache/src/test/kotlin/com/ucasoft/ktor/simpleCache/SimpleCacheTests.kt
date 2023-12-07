@@ -92,4 +92,33 @@ internal class SimpleCacheTests {
             verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
         }
     }
+
+    @Test
+    fun `check parameters in key`() {
+        testApplication {
+            val cacheKey = "/check?param1=value1"
+            var cache: Any? = null
+            val provider = mock<SimpleCacheProvider> {
+                on { invalidateAt } doReturn 5.minutes
+                on { setCache(eq(cacheKey), any(), anyOrNull()) } doAnswer {
+                    cache = it.arguments[1]
+                }
+                on { getCache(eq(cacheKey)) } doReturn cache
+            }
+
+            install(SimpleCache) {
+                testCache(provider)
+            }
+
+            application(Application::testApplicationWithKey)
+
+            val response = client.get("/check?param2=value2&param1=value1").bodyAsText()
+
+            response.shouldBe("Check response")
+
+            verify(provider, times(1)).getCache(eq(cacheKey))
+            verify(provider, times(1)).setCache(eq(cacheKey), any(), anyOrNull())
+            cache.shouldNotBeNull()
+        }
+    }
 }
