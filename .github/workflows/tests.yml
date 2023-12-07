@@ -48,4 +48,5 @@ jobs:
         with:
           paths: ./build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
           token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Coverage Report"
           update-comment: true
