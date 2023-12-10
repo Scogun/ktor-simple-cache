@@ -8,6 +8,8 @@ import kotlin.time.Duration
 
 class SimpleCachePluginConfig {
 
+    lateinit var queryKeys: List<String>
+
     var invalidateAt: Duration? = null
 }
 
@@ -15,7 +17,7 @@ val SimpleCachePlugin = createRouteScopedPlugin(name = "SimpleCachePlugin", ::Si
     val provider = application.plugin(SimpleCache).config.provider ?: error("Add one cache provider!")
     val isResponseFromCacheKey = AttributeKey<Boolean>("isResponseFromCacheKey")
     onCall {
-        val cache = provider.getCache(it.request.uri)
+        val cache = provider.getCache(buildKey(it.request, pluginConfig.queryKeys))
         if (cache != null) {
             it.attributes.put(isResponseFromCacheKey, true)
             it.respond(cache)
@@ -23,7 +25,17 @@ val SimpleCachePlugin = createRouteScopedPlugin(name = "SimpleCachePlugin", ::Si
     }
     onCallRespond { call, body ->
         if (!call.attributes.contains(isResponseFromCacheKey)) {
-            provider.setCache(call.request.uri, body, pluginConfig.invalidateAt)
+            provider.setCache(buildKey(call.request, pluginConfig.queryKeys), body, pluginConfig.invalidateAt)
         }
     }
+}
+
+private fun buildKey(request: ApplicationRequest, queryKeys: List<String>): String {
+    val keys =
+        if (queryKeys.isEmpty()) request.queryParameters else request.queryParameters.filter { key, _ -> key in queryKeys }
+    val key = "${request.path()}?${
+        keys.entries().sortedBy { it.key }
+            .joinToString("&") { "${it.key}=${it.value.joinToString(",")}" }
+    }"
+    return key.trimEnd('?')
 }

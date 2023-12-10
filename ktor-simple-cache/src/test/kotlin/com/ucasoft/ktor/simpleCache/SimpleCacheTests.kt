@@ -1,10 +1,15 @@
 package com.ucasoft.ktor.simpleCache
 
+import io.kotest.assertions.ktor.shouldHaveStatus
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -12,6 +17,7 @@ import io.ktor.server.testing.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.*
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 internal class SimpleCacheTests {
@@ -32,24 +38,11 @@ internal class SimpleCacheTests {
 
     @Test
     fun `check cache call no set`() {
-        testApplication {
-
-            val cache = TextContent("Test", ContentType.Any)
-
-            val provider = mock<SimpleCacheProvider> {
-                on { invalidateAt } doReturn 5.minutes
-                on { getCache(anyString()) } doReturn cache
+        val provider = buildProvider(mutableMapOf("/check" to TextContent("Test", ContentType.Any)))
+        runTest(provider, Application::testApplication, listOf("/check")) { _, responses ->
+            responses.shouldBeSingleton {
+                it.content.shouldBe("Test")
             }
-
-            install(SimpleCache) {
-                testCache(provider)
-            }
-
-            application(Application::testApplication)
-
-            val response = client.get("/check").bodyAsText()
-
-            response.shouldBe("Test")
 
             verify(provider, times(1)).getCache(eq("/check"))
             verify(provider, times(0)).setCache(anyString(), any(), anyOrNull())
@@ -58,38 +51,155 @@ internal class SimpleCacheTests {
 
     @Test
     fun `check cache work`() {
-        testApplication {
 
-            var cache: Any? = null
+        val cache = mutableMapOf<String, Any>()
+        val provider = buildProvider(cache)
 
-            val provider = mock<SimpleCacheProvider>{
-                on { invalidateAt } doReturn 5.minutes
-                on { setCache(anyString(), any(), anyOrNull()) } doAnswer {
-                    cache = it.arguments[1]
+        runTest(provider, Application::testApplication, listOf("/check", "/check")) { iteration, responses ->
+            when (iteration) {
+                0 -> {
+                    responses.shouldBeSingleton {
+                        it.content?.toIntOrNull().shouldNotBeNull()
+                    }
+                    verify(provider, times(1)).getCache(eq("/check"))
+                    verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
+                    cache.shouldNotBeEmpty()
                 }
-                on { getCache(anyString()) } doAnswer {
-                    cache
+                1 -> {
+                    verify(provider, times(2)).getCache(eq("/check"))
+                    verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
                 }
             }
+        }
+    }
 
-            install(SimpleCache) {
+    @Test
+    fun `check all parameters`() {
+        val firstCacheKey = "/check?param1=value1&param2=value2"
+        val secondCacheKey = "/check?param1=value1&param2=value2&param3=value3"
+        val cache = mutableMapOf<String, Any>()
+        val provider = buildProvider(cache)
+
+        runTest(
+            provider,
+            Application::testApplication,
+            listOf(
+                "/check?param2=value2&param1=value1",
+                "/check?param1=value1&param2=value2",
+                "/check?param2=value2&param3=value3&param1=value1"
+            )
+        ) { iteration, responses ->
+            when(iteration) {
+                0 -> {
+                    responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
+                    verify(provider, times(1)).getCache(eq(firstCacheKey))
+                    verify(provider, times(1)).setCache(eq(firstCacheKey), any(), anyOrNull())
+                    cache.keys.shouldBeSingleton {
+                        it.shouldBe(firstCacheKey)
+                    }
+                }
+                1 -> {
+                    responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
+                    responses[iteration].content?.toInt().shouldBe(responses[0].content?.toInt())
+                    verify(provider, times(2)).getCache(eq(firstCacheKey))
+                    verify(provider, times(1)).setCache(eq(firstCacheKey), any(), anyOrNull())
+                    cache.keys.shouldBeSingleton {
+                        it.shouldBe(firstCacheKey)
+                    }
+                }
+                2 -> {
+                    responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
+                    responses[iteration].content?.toInt().shouldNotBe(responses[0].content?.toInt())
+                    verify(provider, times(1)).getCache(eq(secondCacheKey))
+                    verify(provider, times(1)).setCache(eq(secondCacheKey), any(), anyOrNull())
+                    cache.keys.shouldHaveSize(2).shouldContain(secondCacheKey)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `check parameters in keys`() {
+        val cacheOneKey = "/check?param1=value1"
+        val cacheTwoKeys = "/check?param1=value1&param3=value3"
+        val cache = mutableMapOf<String, Any>()
+        val provider = buildProvider(cache)
+
+        runTest(
+            provider,
+            Application::testApplicationWithKeys,
+            listOf(
+                "/check?param2=value2&param1=value1",
+                "/check?param2=value21&param1=value1",
+                "/check?param2=value2&param3=value3&param1=value1"
+            )
+        ) { iteration, responses ->
+            when(iteration) {
+                0 -> {
+                    responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
+                    verify(provider, times(1)).getCache(eq(cacheOneKey))
+                    verify(provider, times(1)).setCache(eq(cacheOneKey), any(), anyOrNull())
+                    cache.keys.shouldBeSingleton {
+                        it.shouldBe(cacheOneKey)
+                    }
+                }
+                1 -> {
+                    responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
+                    responses[iteration].content?.toInt().shouldBe(responses[0].content?.toInt())
+                    verify(provider, times(2)).getCache(eq(cacheOneKey))
+                    verify(provider, times(1)).setCache(eq(cacheOneKey), any(), anyOrNull())
+                    cache.keys.shouldBeSingleton {
+                        it.shouldBe(cacheOneKey)
+                    }
+                }
+                2 -> {
+                    responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
+                    responses[iteration].content?.toInt().shouldNotBe(responses[0].content?.toInt())
+                    verify(provider, times(1)).getCache(eq(cacheTwoKeys))
+                    verify(provider, times(1)).setCache(eq(cacheTwoKeys), any(), anyOrNull())
+                    cache.keys.shouldHaveSize(2).shouldContain(cacheTwoKeys)
+                }
+            }
+        }
+    }
+
+    private fun buildProvider(cache: MutableMap<String, Any> = mutableMapOf(), invalidateDuration: Duration = 5.minutes): SimpleCacheProvider {
+        val provider = mock<SimpleCacheProvider> {
+            on { invalidateAt } doReturn invalidateDuration
+            on { setCache(anyString(), any(), anyOrNull()) } doAnswer {
+                cache[it.arguments[0].toString()] = it.arguments[1]
+            }
+            on { getCache(anyString()) } doAnswer {
+                cache[it.arguments[0]]
+            }
+        }
+
+        return provider
+    }
+
+    private fun buildTestEngine(provider: SimpleCacheProvider, applicationInit: (Application) -> Unit): TestApplicationEngine {
+        val engine = TestApplicationEngine(createTestEnvironment())
+        engine.start(wait = true)
+        with(engine) {
+            application.install(SimpleCache) {
                 testCache(provider)
             }
+            applicationInit.invoke(application)
+        }
 
-            application(Application::testApplication)
+        return engine
+    }
 
-            val response = client.get("/check").bodyAsText()
-
-            response.shouldBe("Check response")
-
-            verify(provider, times(1)).getCache(eq("/check"))
-            verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
-            cache.shouldNotBeNull()
-
-            client.get("/check")
-
-            verify(provider, times(2)).getCache(eq("/check"))
-            verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
+    private fun runTest(provider: SimpleCacheProvider,
+                        applicationInit: (Application) -> Unit,
+                        urls: List<String>,
+                        doAssertions: (iteration: Int, responses: List<TestApplicationResponse>) -> Unit) {
+        val responses = mutableListOf<TestApplicationResponse>()
+        with(buildTestEngine(provider, applicationInit)) {
+            urls.forEachIndexed { index, url ->
+                responses.add(handleRequest(HttpMethod.Get, url).response)
+                doAssertions(index, responses)
+            }
         }
     }
 }

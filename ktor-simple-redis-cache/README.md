@@ -7,7 +7,7 @@ repositories {
     mavenCentral()
 }
 
-implementation("com.ucasoft.ktor:ktor-simple-redis-cache:0.0.1")
+implementation("com.ucasoft.ktor:ktor-simple-redis-cache:0.0.8")
 ```
 ## Usage
 ```kotlin

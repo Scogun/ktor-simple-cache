@@ -7,7 +7,7 @@ repositories {
     mavenCentral()
 }
 
-implementation("com.ucasoft.ktor:ktor-simple-cache:0.0.1")
+implementation("com.ucasoft.ktor:ktor-simple-cache:0.0.8")
 ```
 ## Usage
 ```kotlin
@@ -25,6 +25,13 @@ implementation("com.ucasoft.ktor:ktor-simple-cache:0.0.1")
         }
         cacheOutput {
             get("default-cache") {
+                call.respond(Random.nextInt())
+            }
+        }
+        // Cache key will be built only on listed query keys. Others will be ignored!
+        // `/based-only-on-id-cache?id=123?time=100` and `/based-only-on-id-cache?id=123?time=200` requests will use similar cache key!
+        cacheOutput(queryKeys = listOf("id")) {
+            get("based-only-on-id-cache") {
                 call.respond(Random.nextInt())
             }
         }
