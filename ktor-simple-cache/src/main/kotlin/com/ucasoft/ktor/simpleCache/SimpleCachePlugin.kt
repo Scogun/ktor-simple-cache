@@ -31,8 +31,10 @@ val SimpleCachePlugin = createRouteScopedPlugin(name = "SimpleCachePlugin", ::Si
 }
 
 private fun buildKey(request: ApplicationRequest, queryKeys: List<String>): String {
+    val keys =
+        if (queryKeys.isEmpty()) request.queryParameters else request.queryParameters.filter { key, _ -> key in queryKeys }
     val key = "${request.path()}?${
-        request.queryParameters.filter { key, _ -> key in queryKeys }.entries().sortedBy { it.key }
+        keys.entries().sortedBy { it.key }
             .joinToString("&") { "${it.key}=${it.value.joinToString(",")}" }
     }"
     return key.trimEnd('?')

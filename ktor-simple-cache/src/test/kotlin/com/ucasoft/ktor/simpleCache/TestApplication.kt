@@ -24,7 +24,7 @@ fun Application.testApplication() {
     routing {
         cacheOutput {
             get("/check") {
-                call.respondText("Check response")
+                call.respondText(Random.nextInt().toString())
             }
         }
     }
