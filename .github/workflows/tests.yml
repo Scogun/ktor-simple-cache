@@ -1,0 +1,52 @@
+name: "Build and Test"
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: "Set Up JDK"
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: gradle
+
+      - name: "Grant execute permission for gradlew"
+        run: chmod +x gradlew
+
+      - name: "Build with Gradle"
+        run: ./gradlew build -x test
+        shell: bash
+
+      - name: "Tests"
+        run: ./gradlew cleanTest test --tests "com.ucasoft.ktor.*"
+        shell: bash
+
+      - name: "Tests Report"
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: jUnit Tests
+          path: '**/build/test-results/test/TEST-*.xml'
+          reporter: java-junit
+
+      - name: "Run Coverage"
+        run: ./gradlew codeCoverageReport
+        shell: bash
+
+      - name: "Coverage Report"
+        uses: madrapps/jacoco-report@v1.6.1
+        with:
+          paths: ./build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Coverage Report"
+          update-comment: true
