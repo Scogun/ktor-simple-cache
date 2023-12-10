@@ -1,8 +1,15 @@
 package com.ucasoft.ktor.simpleCache
 
+import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldHave
+import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -62,7 +69,7 @@ internal class SimpleCacheTests {
 
             var cache: Any? = null
 
-            val provider = mock<SimpleCacheProvider>{
+            val provider = mock<SimpleCacheProvider> {
                 on { invalidateAt } doReturn 5.minutes
                 on { setCache(anyString(), any(), anyOrNull()) } doAnswer {
                     cache = it.arguments[1]
@@ -94,31 +101,56 @@ internal class SimpleCacheTests {
     }
 
     @Test
-    fun `check parameters in key`() {
+    fun `check parameters in keys`() {
         testApplication {
-            val cacheKey = "/check?param1=value1"
-            var cache: Any? = null
+            val cacheOneKey = "/check?param1=value1"
+            val cacheTwoKeys = "/check?param1=value1&param3=value3"
+            val cache = mutableMapOf<String, Any>()
             val provider = mock<SimpleCacheProvider> {
                 on { invalidateAt } doReturn 5.minutes
-                on { setCache(eq(cacheKey), any(), anyOrNull()) } doAnswer {
-                    cache = it.arguments[1]
+                on { setCache(anyString(), any(), anyOrNull()) } doAnswer {
+                    cache[it.arguments[0].toString()] = it.arguments[1]
                 }
-                on { getCache(eq(cacheKey)) } doReturn cache
+                on { getCache(anyString()) } doAnswer {
+                    cache[it.arguments[0]]
+                }
             }
 
             install(SimpleCache) {
                 testCache(provider)
             }
 
-            application(Application::testApplicationWithKey)
+            application(Application::testApplicationWithKeys)
 
-            val response = client.get("/check?param2=value2&param1=value1").bodyAsText()
+            val firstResponse = client.get("/check?param2=value2&param1=value1")
+            firstResponse.shouldHaveStatus(HttpStatusCode.OK)
+            val firstData = firstResponse.bodyAsText().toInt()
 
-            response.shouldBe("Check response")
+            verify(provider, times(1)).getCache(eq(cacheOneKey))
+            verify(provider, times(1)).setCache(eq(cacheOneKey), any(), anyOrNull())
+            cache.keys.shouldBeSingleton {
+                it.shouldBe(cacheOneKey)
+            }
 
-            verify(provider, times(1)).getCache(eq(cacheKey))
-            verify(provider, times(1)).setCache(eq(cacheKey), any(), anyOrNull())
-            cache.shouldNotBeNull()
+            val secondResponse = client.get("/check?param2=value21&param1=value1")
+            secondResponse.shouldHaveStatus(HttpStatusCode.OK)
+            val secondData = secondResponse.bodyAsText().toInt()
+
+            secondData.shouldBe(firstData)
+            verify(provider, times(2)).getCache(eq(cacheOneKey))
+            verify(provider, times(1)).setCache(eq(cacheOneKey), any(), anyOrNull())
+            cache.keys.shouldBeSingleton {
+                it.shouldBe(cacheOneKey)
+            }
+
+            val thirdResponse = client.get("/check?param2=value2&param3=value3&param1=value1")
+            thirdResponse.shouldHaveStatus(HttpStatusCode.OK)
+            val thirdData = thirdResponse.bodyAsText().toInt()
+
+            thirdData.shouldNotBe(firstData)
+            verify(provider, times(1)).getCache(eq(cacheTwoKeys))
+            verify(provider, times(1)).setCache(eq(cacheTwoKeys), any(), anyOrNull())
+            cache.keys.shouldHaveSize(2).shouldContain(cacheTwoKeys)
         }
     }
 }

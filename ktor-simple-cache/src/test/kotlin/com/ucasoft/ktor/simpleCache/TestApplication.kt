@@ -3,6 +3,7 @@ package com.ucasoft.ktor.simpleCache
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlin.random.Random
 
 fun Application.badTestApplication() {
 
@@ -29,11 +30,11 @@ fun Application.testApplication() {
     }
 }
 
-fun Application.testApplicationWithKey() {
+fun Application.testApplicationWithKeys() {
     routing {
-        cacheOutput(queryKeys = listOf("param1")) {
+        cacheOutput(queryKeys = listOf("param1", "param3")) {
             get("/check") {
-                call.respondText("Check response")
+                call.respondText(Random.nextInt().toString())
             }
         }
     }
