@@ -1,5 +1,7 @@
 # Ktor Simple Redis Cache
 Redis cache provider for Ktor Simple Cache plugin
+
+[![Maven Central with version prefix filter](https://img.shields.io/maven-central/v/com.ucasoft.ktor/ktor-simple-redis-cache/0.0.8?color=blue)](https://search.maven.org/artifact/com.ucasoft.ktor/ktor-simple-redis-cache/0.0.8/jar)
 ## Setup
 ### Gradle
 ```kotlin
