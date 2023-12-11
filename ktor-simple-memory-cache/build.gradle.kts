@@ -7,6 +7,7 @@ plugins {
 dependencies {
 
     implementation(project(":ktor-simple-cache"))
+    implementation(coroutines("core"))
 
     testImplementation(kotlin("test"))
     testImplementation(ktorServer("test-host"))

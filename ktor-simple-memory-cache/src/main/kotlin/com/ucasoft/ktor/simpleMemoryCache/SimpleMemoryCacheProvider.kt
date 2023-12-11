@@ -4,22 +4,33 @@ import com.ucasoft.ktor.simpleCache.SimpleCacheConfig
 import com.ucasoft.ktor.simpleCache.SimpleCacheProvider
 import java.time.LocalDateTime
 import kotlin.time.Duration
+import kotlinx.coroutines.sync.Mutex
 
 class SimpleMemoryCacheProvider(config: Config) : SimpleCacheProvider(config) {
 
     private val cache = mutableMapOf<String, SimpleMemoryCacheObject>()
 
-    override fun getCache(key: String): Any? {
-        val `object` = cache[key]
-        if (`object` == null || `object`.isExpired) {
-            return null
+    private val mutex = Mutex()
+
+    override suspend fun getCache(key: String): Any? {
+        var `object` = cache[key]
+        if (`object`?.isExpired != false) {
+            mutex.lock()
+            `object` = cache[key]
+            if (`object`?.isExpired != false) {
+                return null
+            } else {
+                mutex.unlock()
+                return `object`.content
+            }
         }
 
         return `object`.content
     }
 
-    override fun setCache(key: String, content: Any, invalidateAt: Duration?) {
+    override suspend fun setCache(key: String, content: Any, invalidateAt: Duration?) {
         cache[key] = SimpleMemoryCacheObject(content, invalidateAt ?: this.invalidateAt)
+        mutex.unlock()
     }
 
     class Config internal constructor() : SimpleCacheProvider.Config()
