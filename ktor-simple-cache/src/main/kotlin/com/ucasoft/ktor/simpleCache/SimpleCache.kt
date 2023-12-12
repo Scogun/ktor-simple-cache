@@ -25,10 +25,10 @@ abstract class SimpleCacheProvider(config: Config) {
 
     val invalidateAt = config.invalidateAt
 
-    abstract fun getCache(key: String): Any?
+    abstract suspend fun getCache(key: String): Any?
 
-    abstract fun setCache(key: String, content: Any, invalidateAt: Duration?)
-
+    abstract suspend fun setCache(key: String, content: Any, invalidateAt: Duration?)
+    
     open class Config protected constructor() {
 
          var invalidateAt: Duration = 5.minutes

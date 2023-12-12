@@ -1,6 +1,7 @@
 import org.gradle.api.Project
 
 const val ktorVersion = "2.3.7"
+const val coroutinesVersion = "1.7.3"
 const val kotestVersion = "5.8.0"
 
 fun Project.ktor(module: String) = "io.ktor:ktor-$module:$ktorVersion"
@@ -8,6 +9,8 @@ fun Project.ktor(module: String) = "io.ktor:ktor-$module:$ktorVersion"
 fun Project.ktorClient(module: String) = ktor("client-$module")
 
 fun Project.ktorServer(module: String) = ktor("server-$module")
+
+fun Project.coroutines(module: String) = "org.jetbrains.kotlinx:kotlinx-coroutines-$module:$coroutinesVersion"
 
 fun Project.kotest(module: String, version: String = kotestVersion) = "io.kotest:kotest-$module:$version"
 

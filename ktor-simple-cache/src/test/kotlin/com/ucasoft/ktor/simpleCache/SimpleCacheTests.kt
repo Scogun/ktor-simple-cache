@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.*
@@ -166,10 +167,10 @@ internal class SimpleCacheTests {
     private fun buildProvider(cache: MutableMap<String, Any> = mutableMapOf(), invalidateDuration: Duration = 5.minutes): SimpleCacheProvider {
         val provider = mock<SimpleCacheProvider> {
             on { invalidateAt } doReturn invalidateDuration
-            on { setCache(anyString(), any(), anyOrNull()) } doAnswer {
+            onBlocking { setCache(anyString(), any(), anyOrNull()) } doAnswer {
                 cache[it.arguments[0].toString()] = it.arguments[1]
             }
-            on { getCache(anyString()) } doAnswer {
+            onBlocking { getCache(anyString()) } doAnswer {
                 cache[it.arguments[0]]
             }
         }
@@ -193,12 +194,14 @@ internal class SimpleCacheTests {
     private fun runTest(provider: SimpleCacheProvider,
                         applicationInit: (Application) -> Unit,
                         urls: List<String>,
-                        doAssertions: (iteration: Int, responses: List<TestApplicationResponse>) -> Unit) {
+                        doAssertions: suspend (iteration: Int, responses: List<TestApplicationResponse>) -> Unit) {
         val responses = mutableListOf<TestApplicationResponse>()
         with(buildTestEngine(provider, applicationInit)) {
             urls.forEachIndexed { index, url ->
                 responses.add(handleRequest(HttpMethod.Get, url).response)
-                doAssertions(index, responses)
+                runBlocking {
+                    doAssertions(index, responses)
+                }
             }
         }
     }
