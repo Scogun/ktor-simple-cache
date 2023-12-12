@@ -14,18 +14,18 @@ class SimpleMemoryCacheProvider(config: Config) : SimpleCacheProvider(config) {
 
     override suspend fun getCache(key: String): Any? {
         var `object` = cache[key]
-        if (`object`?.isExpired != false) {
+        return if (`object`?.isExpired != false) {
             mutex.lock()
             `object` = cache[key]
             if (`object`?.isExpired != false) {
-                return null
+                null
             } else {
                 mutex.unlock()
-                return `object`.content
+                `object`.content
             }
+        } else {
+            `object`.content
         }
-
-        return `object`.content
     }
 
     override suspend fun setCache(key: String, content: Any, invalidateAt: Duration?) {
