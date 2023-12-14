@@ -9,15 +9,23 @@ import io.kotest.matchers.maps.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import org.junit.jupiter.api.Test
+import org.mockito.Answers
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.*
+import org.mockito.stubbing.Answer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -46,7 +54,7 @@ internal class SimpleCacheTests {
             }
 
             verify(provider, times(1)).getCache(eq("/check"))
-            verify(provider, times(0)).setCache(anyString(), any(), anyOrNull())
+            verify(provider, never()).setCache(anyString(), any(), anyOrNull())
         }
     }
 
@@ -62,14 +70,42 @@ internal class SimpleCacheTests {
                     responses.shouldBeSingleton {
                         it.content?.toIntOrNull().shouldNotBeNull()
                     }
-                    verify(provider, times(1)).getCache(eq("/check"))
+                    verify(provider, times(2)).getCache(eq("/check"))
                     verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
                     cache.shouldNotBeEmpty()
                 }
                 1 -> {
-                    verify(provider, times(2)).getCache(eq("/check"))
+                    verify(provider, times(3)).getCache(eq("/check"))
                     verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `check cache is concurrency`() {
+        val provider = buildProvider()
+        with(buildTestEngine(provider, Application::testApplication)) {
+
+            runBlocking {
+                val totalThreads = 1000
+                val deferred = (1..totalThreads).map {
+                    if (it == 100) {
+                        delay(500)
+                    }
+                    async {
+                        client.get("/check")
+                    }
+                }
+
+                val result = deferred.awaitAll().map { it.bodyAsText().toInt() }.groupBy { it }
+                    .map { it.key to it.value.size }
+                result.shouldBeSingleton {
+                    it.second.shouldBe(totalThreads)
+                }
+
+                verify(provider, atMost(1100)).getCache(eq("/check"))
+                verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
             }
         }
     }
@@ -93,7 +129,7 @@ internal class SimpleCacheTests {
             when(iteration) {
                 0 -> {
                     responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
-                    verify(provider, times(1)).getCache(eq(firstCacheKey))
+                    verify(provider, times(2)).getCache(eq(firstCacheKey))
                     verify(provider, times(1)).setCache(eq(firstCacheKey), any(), anyOrNull())
                     cache.keys.shouldBeSingleton {
                         it.shouldBe(firstCacheKey)
@@ -102,7 +138,7 @@ internal class SimpleCacheTests {
                 1 -> {
                     responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
                     responses[iteration].content?.toInt().shouldBe(responses[0].content?.toInt())
-                    verify(provider, times(2)).getCache(eq(firstCacheKey))
+                    verify(provider, times(3)).getCache(eq(firstCacheKey))
                     verify(provider, times(1)).setCache(eq(firstCacheKey), any(), anyOrNull())
                     cache.keys.shouldBeSingleton {
                         it.shouldBe(firstCacheKey)
@@ -111,7 +147,7 @@ internal class SimpleCacheTests {
                 2 -> {
                     responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
                     responses[iteration].content?.toInt().shouldNotBe(responses[0].content?.toInt())
-                    verify(provider, times(1)).getCache(eq(secondCacheKey))
+                    verify(provider, times(2)).getCache(eq(secondCacheKey))
                     verify(provider, times(1)).setCache(eq(secondCacheKey), any(), anyOrNull())
                     cache.keys.shouldHaveSize(2).shouldContain(secondCacheKey)
                 }
@@ -138,7 +174,7 @@ internal class SimpleCacheTests {
             when(iteration) {
                 0 -> {
                     responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
-                    verify(provider, times(1)).getCache(eq(cacheOneKey))
+                    verify(provider, times(2)).getCache(eq(cacheOneKey))
                     verify(provider, times(1)).setCache(eq(cacheOneKey), any(), anyOrNull())
                     cache.keys.shouldBeSingleton {
                         it.shouldBe(cacheOneKey)
@@ -147,7 +183,7 @@ internal class SimpleCacheTests {
                 1 -> {
                     responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
                     responses[iteration].content?.toInt().shouldBe(responses[0].content?.toInt())
-                    verify(provider, times(2)).getCache(eq(cacheOneKey))
+                    verify(provider, times(3)).getCache(eq(cacheOneKey))
                     verify(provider, times(1)).setCache(eq(cacheOneKey), any(), anyOrNull())
                     cache.keys.shouldBeSingleton {
                         it.shouldBe(cacheOneKey)
@@ -156,7 +192,7 @@ internal class SimpleCacheTests {
                 2 -> {
                     responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
                     responses[iteration].content?.toInt().shouldNotBe(responses[0].content?.toInt())
-                    verify(provider, times(1)).getCache(eq(cacheTwoKeys))
+                    verify(provider, times(2)).getCache(eq(cacheTwoKeys))
                     verify(provider, times(1)).setCache(eq(cacheTwoKeys), any(), anyOrNull())
                     cache.keys.shouldHaveSize(2).shouldContain(cacheTwoKeys)
                 }
@@ -165,7 +201,7 @@ internal class SimpleCacheTests {
     }
 
     private fun buildProvider(cache: MutableMap<String, Any> = mutableMapOf(), invalidateDuration: Duration = 5.minutes): SimpleCacheProvider {
-        val provider = mock<SimpleCacheProvider> {
+        val provider = mock<SimpleCacheProvider>(defaultAnswer = Answers.CALLS_REAL_METHODS) {
             on { invalidateAt } doReturn invalidateDuration
             onBlocking { setCache(anyString(), any(), anyOrNull()) } doAnswer {
                 cache[it.arguments[0].toString()] = it.arguments[1]
@@ -174,6 +210,8 @@ internal class SimpleCacheTests {
                 cache[it.arguments[0]]
             }
         }
+
+        provider::class.java.superclass.getDeclaredField("mutex").also { it.isAccessible = true }.set(provider, Mutex())
 
         return provider
     }
