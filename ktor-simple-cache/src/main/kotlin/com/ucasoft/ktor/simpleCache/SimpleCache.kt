@@ -2,6 +2,7 @@ package com.ucasoft.ktor.simpleCache
 
 import io.ktor.server.application.*
 import io.ktor.util.*
+import kotlinx.coroutines.sync.Mutex
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -24,6 +25,29 @@ class SimpleCache(internal var config: SimpleCacheConfig) {
 abstract class SimpleCacheProvider(config: Config) {
 
     val invalidateAt = config.invalidateAt
+
+    private val mutex = Mutex()
+
+    suspend fun loadCache(key: String): Any? {
+        var cache = getCache(key)
+        return if (cache == null) {
+            mutex.lock()
+            cache = getCache(key)
+            if (cache == null) {
+                null
+            } else {
+                mutex.unlock()
+                cache
+            }
+        } else {
+            cache
+        }
+    }
+
+    suspend fun saveCache(key: String, content: Any, invalidateAt: Duration?) {
+        setCache(key, content, invalidateAt)
+        mutex.unlock()
+    }
 
     abstract suspend fun getCache(key: String): Any?
 
