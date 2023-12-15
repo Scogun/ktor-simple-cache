@@ -1,6 +1,5 @@
 package com.ucasoft.ktor.simpleRedisCache
 
-import com.ucasoft.ktor.simpleCache.SimpleCache
 import com.ucasoft.ktor.simpleCache.cacheOutput
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*

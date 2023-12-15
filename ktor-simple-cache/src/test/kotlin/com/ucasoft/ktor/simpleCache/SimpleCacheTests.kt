@@ -9,7 +9,6 @@ import io.kotest.matchers.maps.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -25,7 +24,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.Answers
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.*
-import org.mockito.stubbing.Answer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
