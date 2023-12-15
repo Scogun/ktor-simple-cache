@@ -9,7 +9,6 @@ import io.kotest.matchers.maps.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -25,7 +24,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.Answers
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.*
-import org.mockito.stubbing.Answer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -114,6 +112,7 @@ internal class SimpleCacheTests {
     fun `check all parameters`() {
         val firstCacheKey = "/check?param1=value1&param2=value2"
         val secondCacheKey = "/check?param1=value1&param2=value2&param3=value3"
+        val thirdKey = "/check?param1=value1&params=1,2"
         val cache = mutableMapOf<String, Any>()
         val provider = buildProvider(cache)
 
@@ -123,7 +122,9 @@ internal class SimpleCacheTests {
             listOf(
                 "/check?param2=value2&param1=value1",
                 "/check?param1=value1&param2=value2",
-                "/check?param2=value2&param3=value3&param1=value1"
+                "/check?param2=value2&param3=value3&param1=value1",
+                "/check?params=1&params=2&param1=value1",
+                "/check?param1=value1&params=2&params=1"
             )
         ) { iteration, responses ->
             when(iteration) {
@@ -150,6 +151,20 @@ internal class SimpleCacheTests {
                     verify(provider, times(2)).getCache(eq(secondCacheKey))
                     verify(provider, times(1)).setCache(eq(secondCacheKey), any(), anyOrNull())
                     cache.keys.shouldHaveSize(2).shouldContain(secondCacheKey)
+                }
+                3 -> {
+                    responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
+                    responses[iteration].content?.toInt().shouldNotBe(responses[2].content?.toInt())
+                    verify(provider, times(2)).getCache(eq(thirdKey))
+                    verify(provider, times(1)).setCache(eq(thirdKey), any(), anyOrNull())
+                    cache.keys.shouldHaveSize(3).shouldContain(thirdKey)
+                }
+                4 -> {
+                    responses[iteration].shouldHaveStatus(HttpStatusCode.OK)
+                    responses[iteration].content?.toInt().shouldBe(responses[3].content?.toInt())
+                    verify(provider, times(3)).getCache(eq(thirdKey))
+                    verify(provider, times(1)).setCache(eq(thirdKey), any(), anyOrNull())
+                    cache.keys.shouldHaveSize(3).shouldContain(thirdKey)
                 }
             }
         }

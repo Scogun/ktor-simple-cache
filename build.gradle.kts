@@ -10,7 +10,7 @@ allprojects {
 
     group = "com.ucasoft.ktor"
 
-    version = "0.1.3"
+    version = "0.1.4"
 
     apply {
         plugin("jacoco")
