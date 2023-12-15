@@ -35,7 +35,7 @@ private fun buildKey(request: ApplicationRequest, queryKeys: List<String>): Stri
         if (queryKeys.isEmpty()) request.queryParameters else request.queryParameters.filter { key, _ -> key in queryKeys }
     val key = "${request.path()}?${
         keys.entries().sortedBy { it.key }
-            .joinToString("&") { "${it.key}=${it.value.joinToString(",")}" }
+            .joinToString("&") { "${it.key}=${it.value.sorted().joinToString(",")}" }
     }"
     return key.trimEnd('?')
 }
