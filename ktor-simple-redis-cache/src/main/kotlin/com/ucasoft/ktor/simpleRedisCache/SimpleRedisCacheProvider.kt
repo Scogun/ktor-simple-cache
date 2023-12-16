@@ -6,14 +6,14 @@ import com.ucasoft.ktor.simpleCache.SimpleCacheProvider
 import redis.clients.jedis.JedisPooled
 import kotlin.time.Duration
 
-class SimpleRedisCacheProvider(private val config: Config) : SimpleCacheProvider(config) {
+class SimpleRedisCacheProvider(config: Config) : SimpleCacheProvider(config) {
 
     private val jedis: JedisPooled = JedisPooled(config.host, config.port, config.ssl)
 
     override suspend fun getCache(key: String): Any? = if (jedis.exists(key)) SimpleRedisCacheObject.fromCache(jedis[key]) else null
 
     override suspend fun setCache(key: String, content: Any, invalidateAt: Duration?) {
-        val expired = (invalidateAt ?: config.invalidateAt).inWholeMilliseconds
+        val expired = (invalidateAt ?: this.invalidateAt).inWholeMilliseconds
         jedis.psetex(key, expired, SimpleRedisCacheObject.fromObject(content).toString())
     }
 
