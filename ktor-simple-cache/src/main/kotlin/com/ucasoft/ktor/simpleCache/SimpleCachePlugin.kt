@@ -1,5 +1,6 @@
 package com.ucasoft.ktor.simpleCache
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -24,7 +25,10 @@ val SimpleCachePlugin = createRouteScopedPlugin(name = "SimpleCachePlugin", ::Si
         }
     }
     onCallRespond { call, body ->
-        if (!call.attributes.contains(isResponseFromCacheKey)) {
+        if ((call.response.status() ?: HttpStatusCode.OK) >= HttpStatusCode.BadRequest) {
+            provider.badResponse()
+        }
+        else if (!call.attributes.contains(isResponseFromCacheKey)) {
             provider.saveCache(buildKey(call.request, pluginConfig.queryKeys), body, pluginConfig.invalidateAt)
         }
     }

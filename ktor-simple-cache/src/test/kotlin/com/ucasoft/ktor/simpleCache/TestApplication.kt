@@ -1,5 +1,6 @@
 package com.ucasoft.ktor.simpleCache
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -25,6 +26,9 @@ fun Application.testApplication() {
         cacheOutput {
             get("/check") {
                 call.respondText(Random.nextInt().toString())
+            }
+            get("/bad") {
+                call.respond(HttpStatusCode.BadRequest, "Bad request")
             }
         }
     }

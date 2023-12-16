@@ -26,6 +26,10 @@ abstract class SimpleCacheProvider(config: Config) {
 
     val invalidateAt = config.invalidateAt
 
+    fun badResponse() {
+        mutex.unlock()
+    }
+    
     private val mutex = Mutex()
 
     suspend fun loadCache(key: String): Any? {

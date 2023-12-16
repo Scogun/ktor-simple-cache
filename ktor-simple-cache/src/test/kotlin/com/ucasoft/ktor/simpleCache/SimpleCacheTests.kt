@@ -5,6 +5,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -57,6 +58,33 @@ internal class SimpleCacheTests {
     }
 
     @Test
+    fun `check bad response not cached`() {
+        val cache = mutableMapOf<String, Any>()
+        val provider = buildProvider(cache)
+
+        runTest(provider, Application::testApplication, listOf("/bad", "/bad")) { iteration, responses ->
+            when(iteration) {
+                0 -> {
+                    responses.shouldBeSingleton {
+                        it.status().shouldBe(HttpStatusCode.BadRequest)
+                    }
+                    verify(provider, times(2)).getCache(eq("/bad"))
+                    verify(provider, times(1)).badResponse()
+                    verify(provider, times(0)).setCache(eq("/bad"), any(), anyOrNull())
+                    cache.shouldBeEmpty()
+                }
+                1 -> {
+                    responses.shouldHaveSize(2)
+                    verify(provider, times(4)).getCache(eq("/bad"))
+                    verify(provider, times(2)).badResponse()
+                    verify(provider, times(0)).setCache(eq("/bad"), any(), anyOrNull())
+                    cache.shouldBeEmpty()
+                }
+            }
+        }
+    }
+
+    @Test
     fun `check cache work`() {
 
         val cache = mutableMapOf<String, Any>()
@@ -104,6 +132,27 @@ internal class SimpleCacheTests {
 
                 verify(provider, atMost(1100)).getCache(eq("/check"))
                 verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
+            }
+        }
+    }
+
+    @Test
+    fun `check bad responses aren not locked`() {
+        with(buildTestEngine(buildProvider(), Application::testApplication)) {
+
+            runBlocking {
+                val totalThreads = 100
+                val deferred = (1..totalThreads).map {
+                    async {
+                        client.get("/bad")
+                    }
+                }
+
+                val result = deferred.awaitAll().map { it.bodyAsText() }.groupBy { it }
+                    .map { it.key to it.value.size }
+                result.shouldBeSingleton {
+                    it.second.shouldBe(totalThreads)
+                }
             }
         }
     }
