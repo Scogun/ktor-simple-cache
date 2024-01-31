@@ -1,7 +1,7 @@
 # Ktor Simple Cache
 Base solution which provides the plugin implementation and abstract class for cache providers.
 
-[![Maven Central with version prefix filter](https://img.shields.io/maven-central/v/com.ucasoft.ktor/ktor-simple-cache/0.1.6?color=blue)](https://search.maven.org/artifact/com.ucasoft.ktor/ktor-simple-cache/0.1.6/jar)
+[![Maven Central with version prefix filter](https://img.shields.io/maven-central/v/com.ucasoft.ktor/ktor-simple-cache/0.1.7?color=blue)](https://search.maven.org/artifact/com.ucasoft.ktor/ktor-simple-cache/0.1.7/jar)
 ## Setup
 ### Gradle
 ```kotlin
@@ -9,7 +9,7 @@ repositories {
     mavenCentral()
 }
 
-implementation("com.ucasoft.ktor:ktor-simple-cache:0.1.6")
+implementation("com.ucasoft.ktor:ktor-simple-cache:0.1.7")
 ```
 ## Usage
 ```kotlin
