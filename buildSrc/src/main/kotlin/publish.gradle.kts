@@ -13,17 +13,12 @@ val stubJavadoc by tasks.creating(Jar::class) {
     archiveClassifier.set("javadoc")
 }
 
-val sourceJar by tasks.creating(Jar::class) {
-    archiveClassifier.set("sources")
-    from(project.the<JavaPluginExtension>().sourceSets["main"].allSource)
-}
-
 publishing {
-    publications {
-        create<MavenPublication>("SimpleCache") {
-            from(project.components["java"])
-            artifact(sourceJar)
-            artifact(stubJavadoc)
+    publications.configureEach {
+        if (this is MavenPublication) {
+            if (name != "kotlinMultiplatform") {
+                artifact(stubJavadoc)
+            }
             pom {
                 name.set(libraryData.name)
                 description.set(libraryData.description)
