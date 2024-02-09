@@ -1,7 +1,3 @@
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.kotlin.dsl.`maven-publish`
-import org.gradle.kotlin.dsl.signing
-
 plugins {
     `maven-publish`
     signing
@@ -13,25 +9,20 @@ val stubJavadoc by tasks.creating(Jar::class) {
     archiveClassifier.set("javadoc")
 }
 
-val sourceJar by tasks.creating(Jar::class) {
-    archiveClassifier.set("sources")
-    from(project.the<JavaPluginExtension>().sourceSets["main"].allSource)
-}
-
 publishing {
-    publications {
-        create<MavenPublication>("SimpleCache") {
-            from(project.components["java"])
-            artifact(sourceJar)
-            artifact(stubJavadoc)
+    publications.configureEach {
+        if (this is MavenPublication) {
+            if (name != "kotlinMultiplatform") {
+                artifact(stubJavadoc)
+            }
             pom {
                 name.set(libraryData.name)
                 description.set(libraryData.description)
                 url.set("https://github.com/Scogun/ktor-simple-cache")
                 licenses {
                     license {
-                        name.set("GPL-3.0 License")
-                        url.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                     }
                 }
                 developers {

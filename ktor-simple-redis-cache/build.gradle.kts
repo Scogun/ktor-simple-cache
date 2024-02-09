@@ -1,27 +1,36 @@
 plugins {
-    kotlin("jvm")
+    kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("publish")
 }
 
-dependencies {
-
-    implementation(project(":ktor-simple-cache"))
-    implementation("redis.clients:jedis:5.1.0")
-    implementation("com.google.code.gson:gson:2.10.1")
-
-    testImplementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.4")
-    testImplementation(kotlin("test"))
-    testImplementation(ktorServer("test-host"))
-    testImplementation(ktorClient("content-negotiation"))
-    testImplementation(ktorServer("content-negotiation"))
-    testImplementation(ktor("serialization-kotlinx-json"))
-    testImplementation(kotest("assertions-core"))
-    testImplementation(kotestEx("assertions-ktor", "2.0.0"))
-}
-
 kotlin {
-    jvmToolchain(11)
+    jvm {
+        jvmToolchain(11)
+    }
+    sourceSets {
+        val jvmMain by getting {
+            dependencies {
+                implementation(project(":ktor-simple-cache"))
+                implementation("redis.clients:jedis:5.1.0")
+                implementation("com.google.code.gson:gson:2.10.1")
+            }
+            kotlin.srcDir("src/main/kotlin")
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.4")
+                implementation(kotlin("test"))
+                implementation(ktorServer("test-host"))
+                implementation(ktorClient("content-negotiation"))
+                implementation(ktorServer("content-negotiation"))
+                implementation(ktor("serialization-kotlinx-json"))
+                implementation(kotest("assertions-core"))
+                implementation(kotestEx("assertions-ktor", "2.0.0"))
+            }
+            kotlin.srcDir("src/test/kotlin")
+        }
+    }
 }
 
 libraryData {

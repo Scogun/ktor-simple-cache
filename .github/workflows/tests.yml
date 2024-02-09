@@ -24,11 +24,11 @@ jobs:
         run: chmod +x gradlew
 
       - name: "Build with Gradle"
-        run: ./gradlew build -x test
+        run: ./gradlew build -x allTest
         shell: bash
 
       - name: "Tests"
-        run: ./gradlew cleanTest test --tests "com.ucasoft.ktor.*"
+        run: ./gradlew cleanAllTest allTest
         shell: bash
 
       - name: "Tests Report"
@@ -36,7 +36,7 @@ jobs:
         if: success() || failure()
         with:
           name: jUnit Tests
-          path: '**/build/test-results/test/TEST-*.xml'
+          path: '**/build/test-results/jvmTest/TEST-*.xml'
           reporter: java-junit
 
       - name: "Run Coverage"
