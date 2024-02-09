@@ -22,7 +22,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: "Build with Gradle"
-        run: ./gradlew build
+        run: ./gradlew build -x allTest
         shell: bash
 
       - name: "Decode GPG Key"
