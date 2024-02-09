@@ -21,8 +21,8 @@ publishing {
                 url.set("https://github.com/Scogun/ktor-simple-cache")
                 licenses {
                     license {
-                        name.set("GPL-3.0 License")
-                        url.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                     }
                 }
                 developers {
