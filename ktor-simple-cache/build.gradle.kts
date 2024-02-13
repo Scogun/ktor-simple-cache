@@ -7,9 +7,14 @@ plugins {
 kotlin {
     jvm {
         jvmToolchain(11)
+        tasks.withType<Test> {
+            useJUnitPlatform()
+        }
     }
+    linuxX64()
+    macosX64()
     sourceSets {
-        val jvmMain by getting {
+        val commonMain by getting {
             dependencies {
                 implementation(ktorServer("core"))
             }

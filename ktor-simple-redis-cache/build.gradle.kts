@@ -7,6 +7,9 @@ plugins {
 kotlin {
     jvm {
         jvmToolchain(11)
+        tasks.withType<Test> {
+            useJUnitPlatform()
+        }
     }
     sourceSets {
         val jvmMain by getting {
