@@ -1,7 +1,3 @@
-plugins {
-    id("jacoco-report-aggregation")
-}
-
 tasks.wrapper {
     gradleVersion = "8.6"
 }
@@ -23,24 +19,6 @@ allprojects {
     tasks.withType<Test> {
         reports {
             junitXml.required.set(true)
-        }
-    }
-
-    jacoco {
-        toolVersion = "0.8.11"
-    }
-}
-
-dependencies {
-    jacocoAggregation(project(":ktor-simple-cache"))
-    jacocoAggregation(project(":ktor-simple-memory-cache"))
-    jacocoAggregation(project(":ktor-simple-redis-cache"))
-}
-
-reporting {
-    reports {
-        val codeCoverageReport by creating(JacocoCoverageReport::class) {
-            testType.set(TestSuiteType.UNIT_TEST)
         }
     }
 }

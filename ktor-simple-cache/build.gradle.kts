@@ -1,6 +1,7 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") apply false
+    id("org.jetbrains.kotlinx.kover")
     id("publish")
 }
 
