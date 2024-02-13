@@ -8,10 +8,6 @@ allprojects {
 
     version = "0.2.3"
 
-    apply {
-        plugin("jacoco")
-    }
-
     repositories {
         mavenCentral()
     }
