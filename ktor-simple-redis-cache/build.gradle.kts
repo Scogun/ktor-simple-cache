@@ -1,12 +1,16 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("org.jetbrains.kotlinx.kover")
     id("publish")
 }
 
 kotlin {
     jvm {
         jvmToolchain(11)
+        tasks.withType<Test> {
+            useJUnitPlatform()
+        }
     }
     sourceSets {
         val jvmMain by getting {

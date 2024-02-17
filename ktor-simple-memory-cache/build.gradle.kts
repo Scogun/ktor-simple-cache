@@ -1,6 +1,7 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("org.jetbrains.kotlinx.kover")
     id("publish")
 }
 
@@ -8,14 +9,17 @@ kotlin {
     jvm {
         jvmToolchain(11)
     }
+    linuxX64()
+    macosX64()
     sourceSets {
-        val jvmMain by getting {
+        val commonMain by getting {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
             }
             kotlin.srcDir("src/main/kotlin")
         }
-        val jvmTest by getting {
+        val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(ktorServer("test-host"))

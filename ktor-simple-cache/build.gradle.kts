@@ -1,15 +1,21 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") apply false
+    id("org.jetbrains.kotlinx.kover")
     id("publish")
 }
 
 kotlin {
     jvm {
         jvmToolchain(11)
+        tasks.withType<Test> {
+            useJUnitPlatform()
+        }
     }
+    linuxX64()
+    macosX64()
     sourceSets {
-        val jvmMain by getting {
+        val commonMain by getting {
             dependencies {
                 implementation(ktorServer("core"))
             }

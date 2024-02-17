@@ -13,8 +13,9 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 
 internal class MemoryCacheTests {
 
@@ -67,7 +68,9 @@ internal class MemoryCacheTests {
 
             val secondResponse = jsonClient.get("short")
             secondResponse.body<TestResponse>().id.shouldBe(firstBody.id)
-            Thread.sleep(3000)
+            runBlocking {
+                delay(3000)
+            }
             val thirdResponse = jsonClient.get("short")
             thirdResponse.body<TestResponse>().id.shouldNotBe(firstBody.id)
 
