@@ -21,3 +21,11 @@ install(SimpleCache) {
     //cacheProvider {}
 }
 ```
+
+## Thanks
+
+<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo (Main) logo." height="120px">
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Scogun/ktor-simple-cache&type=Date)](https://star-history.com/#Scogun/ktor-simple-cache&Date)
