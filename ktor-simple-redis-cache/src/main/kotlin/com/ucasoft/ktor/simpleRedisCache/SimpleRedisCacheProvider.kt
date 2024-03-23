@@ -3,18 +3,28 @@ package com.ucasoft.ktor.simpleRedisCache
 import com.google.gson.Gson
 import com.ucasoft.ktor.simpleCache.SimpleCacheConfig
 import com.ucasoft.ktor.simpleCache.SimpleCacheProvider
-import redis.clients.jedis.JedisPooled
+import io.github.domgew.kedis.KedisClient
+import io.github.domgew.kedis.KedisConfiguration
+import io.github.domgew.kedis.arguments.SetOptions
 import kotlin.time.Duration
 
 class SimpleRedisCacheProvider(config: Config) : SimpleCacheProvider(config) {
 
-    private val jedis: JedisPooled = JedisPooled(config.host, config.port, config.ssl)
+    private val kedis = KedisClient.newClient(
+        KedisConfiguration(
+            KedisConfiguration.Endpoint.HostPort(config.host, config.port),
+            KedisConfiguration.Authentication.NoAutoAuth,
+            connectionTimeoutMillis = 250
+        )
+    )
 
-    override suspend fun getCache(key: String): Any? = if (jedis.exists(key)) SimpleRedisCacheObject.fromCache(jedis[key]) else null
+    override suspend fun getCache(key: String): Any? = if (kedis.exists(key) == 1L) SimpleRedisCacheObject.fromCache(kedis.get(key)!!) else null
 
     override suspend fun setCache(key: String, content: Any, invalidateAt: Duration?) {
         val expired = (invalidateAt ?: this.invalidateAt).inWholeMilliseconds
-        jedis.psetex(key, expired, SimpleRedisCacheObject.fromObject(content).toString())
+        kedis.set(key, SimpleRedisCacheObject.fromObject(content).toString(), options = SetOptions(
+            expire = SetOptions.ExpireOption.ExpiresInMilliseconds(expired)
+        ))
     }
 
     class Config internal constructor(): SimpleCacheProvider.Config() {
