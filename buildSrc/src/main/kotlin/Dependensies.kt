@@ -1,7 +1,7 @@
 import org.gradle.api.Project
 
-const val ktorVersion = "2.3.11"
-const val kotestVersion = "5.9.0"
+const val ktorVersion = "2.3.12"
+const val kotestVersion = "5.9.1"
 
 fun Project.ktor(module: String) = "io.ktor:ktor-$module:$ktorVersion"
 
