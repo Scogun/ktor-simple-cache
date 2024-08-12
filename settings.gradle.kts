@@ -1,7 +1,7 @@
 pluginManagement {
     resolutionStrategy {
         plugins {
-            val kotlinVersion = "1.9.24"
+            val kotlinVersion = "1.9.25"
             kotlin("multiplatform") version kotlinVersion apply false
             kotlin("plugin.serialization") version kotlinVersion apply false
             id("org.jetbrains.kotlinx.kover") version "0.8.1" apply false
