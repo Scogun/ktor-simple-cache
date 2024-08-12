@@ -1,5 +1,6 @@
 package com.ucasoft.ktor.simpleCache
 
+import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.assertions.ktor.shouldHaveStatus
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeSingleton
@@ -7,6 +8,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldNotBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -260,6 +262,19 @@ internal class SimpleCacheTests {
                     verify(provider, times(1)).setCache(eq(cacheTwoKeys), any(), anyOrNull())
                     cache.keys.shouldHaveSize(2).shouldContain(cacheTwoKeys)
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `check only get is cached`(){
+        val provider = buildProvider()
+        with(buildTestEngine(provider, Application::testApplication)) {
+            runBlocking {
+                val response = client.post("/post")
+                response.shouldHaveStatus(HttpStatusCode.OK)
+                verify(provider, never()).setCache(eq("/post"), any(), anyOrNull())
+                provider.getCache("/post").shouldBeNull()
             }
         }
     }

@@ -18,6 +18,10 @@ val SimpleCachePlugin = createRouteScopedPlugin(name = "SimpleCachePlugin", ::Si
     val provider = application.plugin(SimpleCache).config.provider ?: error("Add one cache provider!")
     val isResponseFromCacheKey = AttributeKey<Boolean>("isResponseFromCacheKey")
     onCall {
+        if (it.request.httpMethod != HttpMethod.Get) {
+            it.application.log.warn("Cache only works with GET requests")
+            return@onCall
+        }
         val cache = provider.loadCache(buildKey(it.request, pluginConfig.queryKeys))
         if (cache != null) {
             it.attributes.put(isResponseFromCacheKey, true)
@@ -25,11 +29,12 @@ val SimpleCachePlugin = createRouteScopedPlugin(name = "SimpleCachePlugin", ::Si
         }
     }
     onCallRespond { call, body ->
-        if ((call.response.status() ?: HttpStatusCode.OK) >= HttpStatusCode.BadRequest) {
-            provider.badResponse()
-        }
-        else if (!call.attributes.contains(isResponseFromCacheKey)) {
-            provider.saveCache(buildKey(call.request, pluginConfig.queryKeys), body, pluginConfig.invalidateAt)
+        if (call.request.httpMethod == HttpMethod.Get) {
+            if ((call.response.status() ?: HttpStatusCode.OK) >= HttpStatusCode.BadRequest) {
+                provider.badResponse()
+            } else if (!call.attributes.contains(isResponseFromCacheKey)) {
+                provider.saveCache(buildKey(call.request, pluginConfig.queryKeys), body, pluginConfig.invalidateAt)
+            }
         }
     }
 }

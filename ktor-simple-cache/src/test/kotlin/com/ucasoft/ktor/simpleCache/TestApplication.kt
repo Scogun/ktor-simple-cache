@@ -30,6 +30,9 @@ fun Application.testApplication() {
             get("/bad") {
                 call.respond(HttpStatusCode.BadRequest, "Bad request")
             }
+            post("/post") {
+                call.respondText("Post response")
+            }
         }
     }
 }
