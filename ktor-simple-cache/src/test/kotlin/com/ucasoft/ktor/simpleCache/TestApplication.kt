@@ -30,6 +30,9 @@ fun Application.testApplication() {
             get("/bad") {
                 call.respond(HttpStatusCode.BadRequest, "Bad request")
             }
+            get("/exception") {
+                throw RuntimeException("Just an exception")
+            }
         }
     }
 }

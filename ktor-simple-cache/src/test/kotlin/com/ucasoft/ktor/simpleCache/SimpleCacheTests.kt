@@ -158,6 +158,29 @@ internal class SimpleCacheTests {
     }
 
     @Test
+    fun `check route thrown exceptions aren not locked`() {
+        with(buildTestEngine(buildProvider(), Application::testApplication)) {
+
+            runBlocking {
+                val totalThreads = 100
+                val deferred = (1..totalThreads).map {
+                    async {
+                        shouldThrow<RuntimeException> {
+                            client.get("/exception")
+                        }
+                    }
+                }
+
+                val result = deferred.awaitAll().map { it.message }.groupBy { it }
+                    .map { it.key to it.value.size }
+                result.shouldBeSingleton {
+                    it.second.shouldBe(totalThreads)
+                }
+            }
+        }
+    }
+
+    @Test
     fun `check all parameters`() {
         val firstCacheKey = "/check?param1=value1&param2=value2"
         val secondCacheKey = "/check?param1=value1&param2=value2&param3=value3"
