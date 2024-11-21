@@ -6,9 +6,8 @@ plugins {
 }
 
 kotlin {
-    jvm {
-        jvmToolchain(11)
-    }
+    jvmToolchain(11)
+    jvm()
     linuxX64()
     macosX64()
     sourceSets {
