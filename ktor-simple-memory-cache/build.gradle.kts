@@ -6,16 +6,15 @@ plugins {
 }
 
 kotlin {
-    jvm {
-        jvmToolchain(11)
-    }
+    jvmToolchain(11)
+    jvm()
     linuxX64()
     macosX64()
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
             }
             kotlin.srcDir("src/main/kotlin")
         }
