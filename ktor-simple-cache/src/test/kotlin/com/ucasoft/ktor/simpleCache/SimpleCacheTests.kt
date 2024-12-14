@@ -37,7 +37,7 @@ internal class SimpleCacheTests {
             application(Application::badTestApplication)
 
             val exception = shouldThrow<IllegalStateException> {
-                client.get("/check")
+                client.get(CHECK_ENDPOINT)
             }
 
             exception.message.shouldBe("Add one cache provider!")
@@ -47,18 +47,20 @@ internal class SimpleCacheTests {
     @Test
     fun `check cache call no set`() {
         testApplication {
-            val provider = buildProvider(mutableMapOf("/check" to TextContent("Test", ContentType.Any)))
+            val provider = buildProvider(mutableMapOf(CHECK_ENDPOINT to TextContent("Test", ContentType.Any)))
 
             install(SimpleCache) {
                 testCache(provider)
             }
 
-            application(Application::testApplication)
+            application {
+                testApplication()
+            }
 
-            val response = client.get("/check")
+            val response = client.get(CHECK_ENDPOINT)
             response.readRawBytes().toString(Charsets.UTF_8).shouldBe("Test")
 
-            verify(provider, times(1)).getCache(eq("/check"))
+            verify(provider, times(1)).getCache(eq(CHECK_ENDPOINT))
             verify(provider, never()).setCache(anyString(), any(), anyOrNull())
         }
     }
@@ -79,7 +81,7 @@ internal class SimpleCacheTests {
                 val response = client.get("/bad")
                 response.shouldHaveStatus(HttpStatusCode.BadRequest)
                 verify(provider, times(2 * i)).getCache(eq("/bad"))
-                verify(provider, times(1 * i)).badResponse()
+                verify(provider, times(1 * i)).handleBadResponse()
                 verify(provider, times(0)).setCache(eq("/bad"), any(), anyOrNull())
                 cache.shouldBeEmpty()
             }
@@ -99,10 +101,10 @@ internal class SimpleCacheTests {
             application(Application::testApplication)
 
             for (i in 0..1) {
-                val response = client.get("/check")
+                val response = client.get(CHECK_ENDPOINT)
                 response.readRawBytes().toString(Charsets.UTF_8).toIntOrNull().shouldNotBeNull()
-                verify(provider, times(2 + i)).getCache(eq("/check"))
-                verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
+                verify(provider, times(2 + i)).getCache(eq(CHECK_ENDPOINT))
+                verify(provider, times(1)).setCache(eq(CHECK_ENDPOINT), any(), anyOrNull())
                 cache.shouldNotBeEmpty()
             }
         }
@@ -126,7 +128,7 @@ internal class SimpleCacheTests {
                         delay(500)
                     }
                     async {
-                        client.get("/check")
+                        client.get(CHECK_ENDPOINT)
                     }
                 }
 
@@ -136,8 +138,8 @@ internal class SimpleCacheTests {
                     it.second.shouldBe(totalThreads)
                 }
 
-                verify(provider, atMost(1100)).getCache(eq("/check"))
-                verify(provider, times(1)).setCache(eq("/check"), any(), anyOrNull())
+                verify(provider, atMost(1100)).getCache(eq(CHECK_ENDPOINT))
+                verify(provider, times(1)).setCache(eq(CHECK_ENDPOINT), any(), anyOrNull())
             }
         }
     }
@@ -310,5 +312,9 @@ internal class SimpleCacheTests {
         provider::class.java.superclass.getDeclaredField("mutex").also { it.isAccessible = true }.set(provider, Mutex())
 
         return provider
+    }
+
+    companion object {
+        private const val CHECK_ENDPOINT = "/check"
     }
 }
