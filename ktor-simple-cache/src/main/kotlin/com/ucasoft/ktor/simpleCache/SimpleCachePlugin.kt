@@ -26,12 +26,12 @@ val SimpleCachePlugin = createRouteScopedPlugin(name = "SimpleCachePlugin", ::Si
         }
     }
     on(CallFailed) { _, e ->
-        provider.badResponse()
+        provider.handleBadResponse()
         throw e
     }
     onCallRespond { call, body ->
         if ((call.response.status() ?: HttpStatusCode.OK) >= HttpStatusCode.BadRequest) {
-            provider.badResponse()
+            provider.handleBadResponse()
         }
         else if (!call.attributes.contains(isResponseFromCacheKey)) {
             provider.saveCache(buildKey(call.request, pluginConfig.queryKeys), body, pluginConfig.invalidateAt)

@@ -26,11 +26,14 @@ abstract class SimpleCacheProvider(config: Config) {
 
     val invalidateAt = config.invalidateAt
 
-    fun badResponse() {
+    private val mutex = Mutex()
+
+    abstract suspend fun getCache(key: String): Any?
+    abstract suspend fun setCache(key: String, content: Any, invalidateAt: Duration?)
+
+    fun handleBadResponse() {
         mutex.unlock()
     }
-    
-    private val mutex = Mutex()
 
     suspend fun loadCache(key: String): Any? {
         var cache = getCache(key)
@@ -53,10 +56,6 @@ abstract class SimpleCacheProvider(config: Config) {
         mutex.unlock()
     }
 
-    abstract suspend fun getCache(key: String): Any?
-
-    abstract suspend fun setCache(key: String, content: Any, invalidateAt: Duration?)
-    
     open class Config protected constructor() {
 
          var invalidateAt: Duration = 5.minutes
