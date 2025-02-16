@@ -1,12 +1,12 @@
 tasks.wrapper {
-    gradleVersion = "8.11.1"
+    gradleVersion = "8.12.1"
 }
 
 allprojects {
 
     group = "com.ucasoft.ktor"
 
-    version = "0.51.2"
+    version = "0.53.4"
 
     repositories {
         mavenCentral()

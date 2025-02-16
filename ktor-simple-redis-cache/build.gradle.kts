@@ -17,7 +17,7 @@ kotlin {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
                 implementation("redis.clients:jedis:5.1.5")
-                implementation("com.google.code.gson:gson:2.11.0")
+                implementation("com.google.code.gson:gson:2.12.1")
             }
             kotlin.srcDir("src/main/kotlin")
         }
