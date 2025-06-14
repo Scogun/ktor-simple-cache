@@ -186,13 +186,13 @@ internal class SimpleCacheTests {
                 val totalThreads = 100
                 val deferred = (1..totalThreads).map {
                     async {
-                        shouldThrow<RuntimeException> {
-                            client.get("/exception")
-                        }
+                        val response = client.get("/exception")
+                        response.shouldHaveStatus(HttpStatusCode.InternalServerError)
+                        return@async response
                     }
                 }
 
-                val result = deferred.awaitAll().map { it.message }.groupBy { it }
+                val result = deferred.awaitAll().map { it.status }.groupBy { it }
                     .map { it.key to it.value.size }
                 result.shouldBeSingleton {
                     it.second.shouldBe(totalThreads)
