@@ -16,8 +16,8 @@ jobs:
       - name: "Set Up JDK"
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 11
+          distribution: corretto
+          java-version: 17
           cache: gradle
 
       - name: "Grant execute permission for gradlew"
@@ -32,7 +32,7 @@ jobs:
         shell: bash
 
       - name: "Tests Report"
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: jUnit Tests

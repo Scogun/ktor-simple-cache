@@ -1,7 +1,7 @@
 pluginManagement {
     resolutionStrategy {
         plugins {
-            val kotlinVersion = "2.1.10"
+            val kotlinVersion = "2.1.21"
             kotlin("multiplatform") version kotlinVersion apply false
             kotlin("plugin.serialization") version kotlinVersion apply false
             id("org.jetbrains.kotlinx.kover") version "0.9.1" apply false
@@ -10,7 +10,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 rootProject.name = "simple-cache"

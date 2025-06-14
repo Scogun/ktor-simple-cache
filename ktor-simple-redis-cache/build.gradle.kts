@@ -16,8 +16,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
-                implementation("redis.clients:jedis:5.1.5")
-                implementation("com.google.code.gson:gson:2.12.1")
+                implementation("redis.clients:jedis:6.0.0")
+                implementation("com.google.code.gson:gson:2.13.1")
             }
             kotlin.srcDir("src/main/kotlin")
         }
