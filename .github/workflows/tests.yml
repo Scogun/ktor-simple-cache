@@ -11,10 +11,10 @@ jobs:
       checks: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: "Set Up JDK"
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: corretto
           java-version: 17
@@ -32,7 +32,7 @@ jobs:
         shell: bash
 
       - name: "Tests Report"
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@ee446707ff3bdadb3c039ff1af4286a09acb79c6
         if: success() || failure()
         with:
           name: jUnit Tests
@@ -45,7 +45,7 @@ jobs:
         shell: bash
 
       - name: "Coverage Report"
-        uses: mi-kas/kover-report@v1
+        uses: mi-kas/kover-report@624c610e0c054a270ce07a40972c643261c513bb
         if: ${{ github.event_name == 'pull_request' }}
         with:
           path: | 
