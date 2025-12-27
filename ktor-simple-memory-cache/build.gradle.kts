@@ -17,7 +17,7 @@ kotlin {
             }
             kotlin.srcDir("src/main/kotlin")
         }
-        val commonTest by getting {
+        val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(ktorServer("test-host"))
@@ -25,7 +25,7 @@ kotlin {
                 implementation(ktorServer("content-negotiation"))
                 implementation(ktor("serialization-kotlinx-json"))
                 implementation(kotest("assertions-core"))
-                implementation(kotestEx("assertions-ktor", "2.0.0"))
+                implementation(kotest("assertions-ktor"))
             }
             kotlin.srcDir("src/test/kotlin")
         }

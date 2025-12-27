@@ -16,21 +16,22 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
-                implementation("redis.clients:jedis:6.0.0")
-                implementation("com.google.code.gson:gson:2.13.1")
+                implementation("redis.clients:jedis:7.2.0")
+                implementation("com.google.code.gson:gson:2.13.2")
             }
             kotlin.srcDir("src/main/kotlin")
         }
         val jvmTest by getting {
             dependencies {
-                implementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.4")
+                implementation("com.redis:testcontainers-redis:1.7.0")
+                implementation("org.testcontainers:junit-jupiter:1.21.4")
                 implementation(kotlin("test"))
                 implementation(ktorServer("test-host"))
                 implementation(ktorClient("content-negotiation"))
                 implementation(ktorServer("content-negotiation"))
                 implementation(ktor("serialization-kotlinx-json"))
                 implementation(kotest("assertions-core"))
-                implementation(kotestEx("assertions-ktor", "2.0.0"))
+                implementation(kotest("assertions-ktor"))
             }
             kotlin.srcDir("src/test/kotlin")
         }
