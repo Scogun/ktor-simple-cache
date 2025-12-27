@@ -17,12 +17,12 @@ import io.ktor.server.testing.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.time.Duration.Companion.seconds
 
+@Testcontainers
 internal class RedisCacheTests {
 
     @Test
@@ -104,19 +104,5 @@ internal class RedisCacheTests {
 
         @Container
         val redisContainer = RedisContainer(DEFAULT_IMAGE_NAME)
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            redisContainer.start()
-        }
-
-        @JvmStatic
-        @AfterAll
-        fun tearDown() {
-            if (redisContainer.isRunning) {
-                redisContainer.stop()
-            }
-        }
     }
 }

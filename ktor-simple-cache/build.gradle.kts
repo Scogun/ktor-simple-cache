@@ -2,7 +2,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") apply false
     id("org.jetbrains.kotlinx.kover")
-    id("publish")
+    id("com.vanniktech.maven.publish")
 }
 
 kotlin {
@@ -26,15 +26,19 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation(ktorServer("test-host"))
                 implementation(kotest("assertions-core"))
-                implementation(kotestEx("assertions-ktor", "2.0.0"))
-                implementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+                implementation(kotest("assertions-ktor"))
+                implementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
             }
             kotlin.srcDir("src/test/kotlin")
         }
     }
 }
 
-libraryData {
-    name.set("Ktor Simple Cache")
-    description.set("Base realization of simple output cache for Ktor server")
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+
+    pom {
+        configurePom("Ktor Simple Cache", "Base realization of simple output cache for Ktor server", this)
+    }
 }
