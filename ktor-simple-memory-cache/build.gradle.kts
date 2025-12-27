@@ -14,7 +14,6 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
             }
             kotlin.srcDir("src/main/kotlin")
         }

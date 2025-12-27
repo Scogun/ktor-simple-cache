@@ -2,9 +2,9 @@ package com.ucasoft.ktor.simpleMemoryCache
 
 import com.ucasoft.ktor.simpleCache.SimpleCacheConfig
 import com.ucasoft.ktor.simpleCache.SimpleCacheProvider
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 class SimpleMemoryCacheProvider(config: Config) : SimpleCacheProvider(config) {
 
