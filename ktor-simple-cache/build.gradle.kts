@@ -2,7 +2,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") apply false
     id("org.jetbrains.kotlinx.kover")
-    id("publish")
+    id("com.vanniktech.maven.publish")
 }
 
 kotlin {
@@ -34,7 +34,11 @@ kotlin {
     }
 }
 
-libraryData {
-    name.set("Ktor Simple Cache")
-    description.set("Base realization of simple output cache for Ktor server")
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+
+    pom {
+        configurePom("Ktor Simple Cache", "Base realization of simple output cache for Ktor server", this)
+    }
 }

@@ -5,6 +5,7 @@ pluginManagement {
             kotlin("multiplatform") version kotlinVersion apply false
             kotlin("plugin.serialization") version kotlinVersion apply false
             id("org.jetbrains.kotlinx.kover") version "0.9.4" apply false
+            id("com.vanniktech.maven.publish") version "0.35.0" apply false
         }
     }
 }

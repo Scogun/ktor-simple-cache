@@ -2,7 +2,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("org.jetbrains.kotlinx.kover")
-    id("publish")
+    id("com.vanniktech.maven.publish")
 }
 
 kotlin {
@@ -32,7 +32,11 @@ kotlin {
     }
 }
 
-libraryData {
-    name.set("Ktor Simple Memory Cache")
-    description.set("Memory cache provider for Simple Cache plugin")
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+
+    pom {
+        configurePom("Ktor Simple Memory Cache", "Memory cache provider for Simple Cache plugin", this)
+    }
 }

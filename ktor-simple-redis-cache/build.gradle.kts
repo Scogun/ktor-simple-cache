@@ -2,7 +2,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("org.jetbrains.kotlinx.kover")
-    id("publish")
+    id("com.vanniktech.maven.publish")
 }
 
 kotlin {
@@ -38,7 +38,11 @@ kotlin {
     }
 }
 
-libraryData {
-    name.set("Ktor Simple Redis Cache")
-    description.set("Redis cache provider for Simple Cache plugin")
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+
+    pom {
+        configurePom("Ktor Simple Redis Cache", "Redis cache provider for Simple Cache plugin", this)
+    }
 }
