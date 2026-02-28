@@ -27,7 +27,7 @@ kotlin {
                 implementation(ktorServer("test-host"))
                 implementation(kotest("assertions-core"))
                 implementation(kotest("assertions-ktor"))
-                implementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
+                implementation("org.mockito.kotlin:mockito-kotlin:6.2.3")
             }
             kotlin.srcDir("src/test/kotlin")
         }

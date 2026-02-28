@@ -1,11 +1,11 @@
 pluginManagement {
     resolutionStrategy {
         plugins {
-            val kotlinVersion = "2.3.0"
+            val kotlinVersion = "2.3.10"
             kotlin("multiplatform") version kotlinVersion apply false
             kotlin("plugin.serialization") version kotlinVersion apply false
-            id("org.jetbrains.kotlinx.kover") version "0.9.4" apply false
-            id("com.vanniktech.maven.publish") version "0.35.0" apply false
+            id("org.jetbrains.kotlinx.kover") version "0.9.7" apply false
+            id("com.vanniktech.maven.publish") version "0.36.0" apply false
         }
     }
 }
