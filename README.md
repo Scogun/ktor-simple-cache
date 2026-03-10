@@ -1,4 +1,8 @@
-# Ktor Simple Cache
+<div align="center">
+    
+# Ktor Simple Cache ![ktor](https://avatars.githubusercontent.com/u/28214161?s=48&v=4) [Official Ktor plugin](https://start.ktor.io/settings)
+
+</div>
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Scogun_ktor-simple-cache&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Scogun_ktor-simple-cache) ![GitHub](https://img.shields.io/github/license/Scogun/ktor-simple-cache?color=blue) ![Publish workflow](https://github.com/Scogun/ktor-simple-cache/actions/workflows/publish.yml/badge.svg)
 
