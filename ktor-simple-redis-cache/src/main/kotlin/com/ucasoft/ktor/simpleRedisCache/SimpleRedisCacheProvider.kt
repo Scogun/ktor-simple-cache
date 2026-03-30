@@ -3,21 +3,25 @@ package com.ucasoft.ktor.simpleRedisCache
 import com.google.gson.Gson
 import com.ucasoft.ktor.simpleCache.SimpleCacheConfig
 import com.ucasoft.ktor.simpleCache.SimpleCacheProvider
-import redis.clients.jedis.JedisPooled
+import redis.clients.jedis.DefaultJedisClientConfig
+import redis.clients.jedis.RedisClient
 import kotlin.time.Duration
 
 class SimpleRedisCacheProvider(config: Config) : SimpleCacheProvider(config) {
 
-    private val jedis: JedisPooled = JedisPooled(config.host, config.port, config.ssl)
+    private val jedis = RedisClient.builder().hostAndPort(config.host, config.port).clientConfig(
+        DefaultJedisClientConfig.builder().ssl(config.ssl).build()
+    ).build()
 
-    override suspend fun getCache(key: String): Any? = if (jedis.exists(key)) SimpleRedisCacheObject.fromCache(jedis[key]) else null
+    override suspend fun getCache(key: String): Any? =
+        if (jedis.exists(key)) SimpleRedisCacheObject.fromCache(jedis[key]) else null
 
     override suspend fun setCache(key: String, content: Any, invalidateAt: Duration?) {
         val expired = (invalidateAt ?: this.invalidateAt).inWholeMilliseconds
         jedis.psetex(key, expired, SimpleRedisCacheObject.fromObject(content).toString())
     }
 
-    class Config internal constructor(): SimpleCacheProvider.Config() {
+    class Config internal constructor() : SimpleCacheProvider.Config() {
 
         var host = "localhost"
 

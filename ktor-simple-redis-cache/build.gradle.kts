@@ -6,7 +6,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
     jvm {
         tasks.withType<Test> {
             useJUnitPlatform()
@@ -16,14 +16,14 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
-                implementation("redis.clients:jedis:7.3.0")
+                implementation("redis.clients:jedis:7.4.0")
                 implementation("com.google.code.gson:gson:2.13.2")
             }
             kotlin.srcDir("src/main/kotlin")
         }
         val jvmTest by getting {
             dependencies {
-                implementation("com.redis:testcontainers-redis:1.7.0")
+                implementation("com.redis:testcontainers-redis:2.2.4")
                 implementation("org.testcontainers:junit-jupiter:1.21.4")
                 implementation(kotlin("test"))
                 implementation(ktorServer("test-host"))
