@@ -16,7 +16,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
-                implementation("redis.clients:jedis:7.4.0")
+                implementation("io.github.domgew:kedis:0.0.12")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
             }
             kotlin.srcDir("src/main/kotlin")

@@ -2,6 +2,9 @@ package com.ucasoft.ktor.simpleRedisCache
 
 import com.ucasoft.ktor.simpleCache.SimpleCacheConfig
 import com.ucasoft.ktor.simpleCache.SimpleCacheProvider
+import io.github.domgew.kedis.KedisClient
+import io.github.domgew.kedis.arguments.value.SetOptions
+import io.github.domgew.kedis.commands.KedisValueCommands
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
@@ -10,29 +13,28 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import redis.clients.jedis.DefaultJedisClientConfig
-import redis.clients.jedis.RedisClient
-import redis.clients.jedis.params.SetParams
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 class SimpleRedisCacheProvider(config: Config) : SimpleCacheProvider(config) {
 
-    private val jedis = RedisClient.builder().hostAndPort(config.host, config.port).clientConfig(
-        DefaultJedisClientConfig.builder().ssl(config.ssl).build()
-    ).build()
+    private val jedis = KedisClient.builder {
+        hostAndPort(config.host, config.port)
+        connectTimeout = 250.milliseconds
+    }
 
     override suspend fun getCache(key: String): Any? =
-        jedis.get(key)?.let { Json.decodeFromString<CachedResponse>(it).toOutgoingContent() }
+        jedis.execute(KedisValueCommands.get(key))?.let { Json.decodeFromString<CachedResponse>(it).toOutgoingContent() }
 
     override suspend fun setCache(key: String, content: Any, invalidateAt: Duration?) {
         val expired = (invalidateAt ?: this.invalidateAt).inWholeMilliseconds
         val outgoing = content as OutgoingContent
-        jedis.set(key, Json.encodeToString(CachedResponse(
+        jedis.execute(KedisValueCommands.set(key, Json.encodeToString(CachedResponse(
             bytes = outgoing.toByteArray(),
             contentType = outgoing.contentType?.toString(),
             status = outgoing.status?.value,
             contentLength = outgoing.contentLength
-        )), SetParams().px(expired))
+        )), SetOptions(expire = SetOptions.ExpireOption.ExpiresInMilliseconds(expired))))
     }
 
     class Config internal constructor() : SimpleCacheProvider.Config() {
@@ -40,8 +42,6 @@ class SimpleRedisCacheProvider(config: Config) : SimpleCacheProvider(config) {
         var host = "localhost"
 
         var port = 6379
-
-        var ssl = false
     }
 }
 
