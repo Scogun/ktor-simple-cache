@@ -13,7 +13,7 @@ kotlin {
         }
     }
     sourceSets {
-        val jvmMain by getting {
+        val commonMain by getting {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
                 implementation("io.github.domgew:kedis:0.0.12")
