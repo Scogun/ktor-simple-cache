@@ -18,18 +18,18 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class SimpleRedisCacheProvider(config: Config) : SimpleCacheProvider(config) {
 
-    private val jedis = KedisClient.builder {
+    private val kedis = KedisClient.builder {
         hostAndPort(config.host, config.port)
         connectTimeout = 250.milliseconds
     }
 
     override suspend fun getCache(key: String): Any? =
-        jedis.execute(KedisValueCommands.get(key))?.let { Json.decodeFromString<CachedResponse>(it).toOutgoingContent() }
+        kedis.execute(KedisValueCommands.get(key))?.let { Json.decodeFromString<CachedResponse>(it).toOutgoingContent() }
 
     override suspend fun setCache(key: String, content: Any, invalidateAt: Duration?) {
         val expired = (invalidateAt ?: this.invalidateAt).inWholeMilliseconds
         val outgoing = content as OutgoingContent
-        jedis.execute(KedisValueCommands.set(key, Json.encodeToString(CachedResponse(
+        kedis.execute(KedisValueCommands.set(key, Json.encodeToString(CachedResponse(
             bytes = outgoing.toByteArray(),
             contentType = outgoing.contentType?.toString(),
             status = outgoing.status?.value,
@@ -62,6 +62,7 @@ private data class CachedResponse(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
+        if (other == null || this::class != other::class) return false
 
         other as CachedResponse
 
