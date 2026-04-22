@@ -6,7 +6,7 @@ allprojects {
 
     group = "com.ucasoft.ktor"
 
-    version = "0.63.3"
+    version = "0.70.2"
 
     repositories {
         mavenCentral()
