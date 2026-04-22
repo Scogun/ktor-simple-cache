@@ -1,10 +1,18 @@
 package com.ucasoft.ktor.simpleRedisCache
 
-import com.google.gson.Gson
 import com.ucasoft.ktor.simpleCache.SimpleCacheConfig
 import com.ucasoft.ktor.simpleCache.SimpleCacheProvider
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.readRemaining
+import kotlinx.io.readByteArray
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.RedisClient
+import redis.clients.jedis.params.SetParams
 import kotlin.time.Duration
 
 class SimpleRedisCacheProvider(config: Config) : SimpleCacheProvider(config) {
@@ -14,11 +22,17 @@ class SimpleRedisCacheProvider(config: Config) : SimpleCacheProvider(config) {
     ).build()
 
     override suspend fun getCache(key: String): Any? =
-        if (jedis.exists(key)) SimpleRedisCacheObject.fromCache(jedis[key]) else null
+        jedis.get(key)?.let { Json.decodeFromString<CachedResponse>(it).toOutgoingContent() }
 
     override suspend fun setCache(key: String, content: Any, invalidateAt: Duration?) {
         val expired = (invalidateAt ?: this.invalidateAt).inWholeMilliseconds
-        jedis.psetex(key, expired, SimpleRedisCacheObject.fromObject(content).toString())
+        val outgoing = content as OutgoingContent
+        jedis.set(key, Json.encodeToString(CachedResponse(
+            bytes = outgoing.toByteArray(),
+            contentType = outgoing.contentType?.toString(),
+            status = outgoing.status?.value,
+            contentLength = outgoing.contentLength
+        )), SetParams().px(expired))
     }
 
     class Config internal constructor() : SimpleCacheProvider.Config() {
@@ -31,18 +45,41 @@ class SimpleRedisCacheProvider(config: Config) : SimpleCacheProvider(config) {
     }
 }
 
-private class SimpleRedisCacheObject(val type: String, val content: String) {
+@Serializable
+private data class CachedResponse(
+    val bytes: ByteArray,
+    val contentType: String?,
+    val status: Int?,
+    val contentLength: Long?
+) {
 
-    override fun toString() = "$type%#%$content"
+    fun toOutgoingContent() = object : OutgoingContent.ByteArrayContent() {
+        override fun bytes() = bytes
+        override val contentType = this@CachedResponse.contentType?.let { ContentType.parse(it) }
+        override val status = this@CachedResponse.status?.let { HttpStatusCode.fromValue(it) }
+        override val contentLength = this@CachedResponse.contentLength
+    }
 
-    companion object {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-        fun fromObject(`object`: Any) = SimpleRedisCacheObject(`object`::class.java.name, Gson().toJson(`object`))
+        other as CachedResponse
 
-        fun fromCache(cache: String): Any {
-            val data = cache.split("%#%")
-            return Gson().fromJson(data.last(), Class.forName(data.first()))
-        }
+        if (status != other.status) return false
+        if (contentLength != other.contentLength) return false
+        if (!bytes.contentEquals(other.bytes)) return false
+        if (contentType != other.contentType) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = status ?: 0
+        result = 31 * result + (contentLength?.hashCode() ?: 0)
+        result = 31 * result + bytes.contentHashCode()
+        result = 31 * result + (contentType?.hashCode() ?: 0)
+        return result
     }
 }
 
@@ -50,4 +87,17 @@ fun SimpleCacheConfig.redisCache(
     configure : SimpleRedisCacheProvider.Config.() -> Unit
 ){
     provider = SimpleRedisCacheProvider(SimpleRedisCacheProvider.Config().apply(configure))
+}
+
+private suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
+    is OutgoingContent.ByteArrayContent -> bytes()
+    is OutgoingContent.NoContent -> byteArrayOf()
+    is OutgoingContent.ReadChannelContent -> readFrom().readRemaining().readByteArray()
+    is OutgoingContent.WriteChannelContent -> {
+        val channel = ByteChannel(autoFlush = true)
+        writeTo(channel)
+        channel.close()
+        channel.readRemaining().readByteArray()
+    }
+    else -> byteArrayOf()
 }

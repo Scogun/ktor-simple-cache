@@ -17,7 +17,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(ktorServer("core"))
+                api(ktorServer("core"))
             }
             kotlin.srcDir("src/main/kotlin")
         }

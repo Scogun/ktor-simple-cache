@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -97,6 +98,30 @@ internal class RedisCacheTests {
 
             val secondLongResponse = jsonClient.get("/long")
             secondLongResponse.body<TestResponse>().id.shouldBe(longResponse.body<TestResponse>().id)
+        }
+    }
+
+    @Test
+    fun `test content type`() {
+        testApplication {
+            install(SimpleCache) {
+                redisCache {
+                    invalidateAt = 10.seconds
+                    this.host = redisContainer.host
+                    this.port = redisContainer.firstMappedPort
+                }
+            }
+
+            application(Application::testApplication)
+
+            val textResponse1 = client.get("/text")
+            textResponse1.status.shouldBe(HttpStatusCode.OK)
+            textResponse1.contentType()?.withoutParameters().shouldBe(ContentType.Text.Plain)
+
+            val textResponse2 = client.get("/text")
+            textResponse2.status shouldBe HttpStatusCode.OK
+            textResponse2.contentType()?.withoutParameters().shouldBe(ContentType.Text.Plain)
+            textResponse2.bodyAsText().shouldBe(textResponse1.bodyAsText())
         }
     }
 
