@@ -12,12 +12,16 @@ kotlin {
             useJUnitPlatform()
         }
     }
+    linuxArm64()
+    linuxX64()
+    macosArm64()
+    mingwX64()
     sourceSets {
-        val jvmMain by getting {
+        val commonMain by getting {
             dependencies {
                 implementation(project(":ktor-simple-cache"))
-                implementation("redis.clients:jedis:7.4.0")
-                implementation("com.google.code.gson:gson:2.13.2")
+                implementation("io.github.domgew:kedis:0.0.12")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             }
             kotlin.srcDir("src/main/kotlin")
         }

@@ -3,6 +3,7 @@ package com.ucasoft.ktor.simpleRedisCache
 import com.ucasoft.ktor.simpleCache.cacheOutput
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.http.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -28,6 +29,11 @@ fun Application.testApplication() {
         cacheOutput {
             get("long") {
                 call.respond(TestResponse())
+            }
+        }
+        cacheOutput {
+            get("text") {
+                call.respondText("Hello World with ${Random.nextInt()}", ContentType.Text.Plain)
             }
         }
     }
